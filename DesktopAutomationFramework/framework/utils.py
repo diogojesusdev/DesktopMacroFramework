@@ -13,12 +13,15 @@ from ..framework.Variables import RVariables, RWVariables
 def handleMasterEventsWhileRunning(func, args):
     if RWVariables.stopMacro:
         RWVariables.stopMacro = False
-        raise MacroStoppedError("Macro Stopped")
+        raise MacroStoppedError("Macro stopped by user")
+
+    resumed_from_pause = False
     
     if not RVariables.resumeMacroFlag.is_set():
         print("[PAUSED] at", func.__name__, args)
         RWVariables.macroStatus = MacroStatus.PAUSED
         tryUpdateMacroStatusGUI()
+        resumed_from_pause = True
 
     updatePlayButtonsConfigs()
     
@@ -26,7 +29,11 @@ def handleMasterEventsWhileRunning(func, args):
 
     if RWVariables.stopMacro:
         RWVariables.stopMacro = False
-        raise MacroStoppedError("Macro Stopped")
+        raise MacroStoppedError("Macro stopped by user")
+
+    class_name = func.__qualname__.split('.')[0]
+    if resumed_from_pause and class_name != "windows":
+        checkActiveWindow()
 
     RWVariables.macroStatus = MacroStatus.RUNNING
             
@@ -100,19 +107,21 @@ def checkActiveWindow():
             print("Recovered window", "From:", initial_window_title, "To:", actual_window_title)
             return
         else:
-            raise Exception("Was not in expected window and could not recover. Expected:", RWVariables.expectedWindowTitle, "Got:", initial_window_title)
+            raise Exception(
+                f"Expected a window containing '{RWVariables.expectedWindowTitle}', but the active window was '{initial_window_title}'. The macro could not switch back to the expected window"
+            )
     else:
-        raise Exception("Was not in expected window and could not recover")
+        raise Exception(f"Expected a window containing '{RWVariables.expectedWindowTitle}', but no matching window was found")
 
 def get_source_around_line(window_size=8):
     frame = inspect.currentframe()
-    if frame is None: raise Exception("Could not get code from stackframe")
+    if frame is None: raise Exception("Could not inspect the macro source code for the monitor")
     
     # Go 2 layers down
     caller_frame = frame.f_back
-    if caller_frame is None: raise Exception("Could not get code from stackframe")
+    if caller_frame is None: raise Exception("Could not inspect the macro source code for the monitor")
     caller_frame= caller_frame.f_back
-    if caller_frame is None: raise Exception("Could not get code from stackframe")
+    if caller_frame is None: raise Exception("Could not inspect the macro source code for the monitor")
     
     source_lines, start_line = inspect.getsourcelines(caller_frame)
     # jump annotation + def <fun_name>()
@@ -133,13 +142,13 @@ def get_source_around_line(window_size=8):
 
 def get_full_source_code() -> list[tuple[int, str]]:
     frame = inspect.currentframe()
-    if frame is None: raise Exception("Could not get code from stackframe")
+    if frame is None: raise Exception("Could not inspect the macro source code for the monitor")
     
     # Go 2 layers down
     caller_frame = frame.f_back
-    if caller_frame is None: raise Exception("Could not get code from stackframe")
+    if caller_frame is None: raise Exception("Could not inspect the macro source code for the monitor")
     caller_frame= caller_frame.f_back
-    if caller_frame is None: raise Exception("Could not get code from stackframe")
+    if caller_frame is None: raise Exception("Could not inspect the macro source code for the monitor")
     
     source_lines, start_line = inspect.getsourcelines(caller_frame)
     source_lines = [(start_line + i + 1, line.rstrip('\n')) for i, line in enumerate(source_lines)]
@@ -166,5 +175,5 @@ def tryUpdateMacroStatusGUI():
     RWVariables.macroMonitorShared.updateStatus(RWVariables.macroStatus)
 
 def showMacroErrorGUI(error_msg: str):
-    if RWVariables.macroMonitorShared is None: raise Exception("MacroMonitor not initialized")
+    if RWVariables.macroMonitorShared is None: raise Exception("Macro monitor is not initialized")
     RWVariables.macroMonitorShared.setMessage("ERROR: " + error_msg)

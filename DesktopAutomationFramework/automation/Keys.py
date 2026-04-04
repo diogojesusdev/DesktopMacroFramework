@@ -83,5 +83,5 @@ def convert_to_original_key(custom_key: MyKey):
         MyKey.scroll_lock: OriginalKey.scroll_lock
     }
     result = key_mapping.get(custom_key)
-    if result is None: raise Exception(f"Could not map key {custom_key} to original Key")
+    if result is None: raise Exception(f"Unsupported key '{custom_key}'")
     return result

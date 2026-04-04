@@ -70,10 +70,11 @@ class vars:
         """
         value = getattr(vars, variable_name, None)
         if value is None:
-            raise Exception(f"'{variable_name}' is missing. Correct Example: pythonw {sys.argv[0]} {variable_name}=your_value")
+            raise Exception(f"Missing required variable '{variable_name}'. Example: pythonw {sys.argv[0]} {variable_name}=your_value")
         
         if accepted_values is not None and value not in accepted_values:
-            raise Exception(f"{variable_name}={value}. '{value}' is not valid. Valid options: {accepted_values}")
+            accepted_values_str = ", ".join(map(str, accepted_values))
+            raise Exception(f"Invalid value for '{variable_name}': '{value}'. Expected one of: {accepted_values_str}")
 
         return str(value)
 
@@ -85,15 +86,16 @@ class vars:
         """
         value = getattr(vars, variable_name, None)
         if value is None:
-            raise Exception(f"'{variable_name}' is missing. Correct Example: pythonw {sys.argv[0]} {variable_name}=your_value")
+            raise Exception(f"Missing required variable '{variable_name}'. Example: pythonw {sys.argv[0]} {variable_name}=your_value")
         try:
             value = float(value)
             if value.is_integer(): value = int(value)
         except Exception as e:
-            raise Exception(f"{variable_name} = {value}. The value is not a number")
+            raise Exception(f"Invalid numeric value for '{variable_name}': '{value}'")
         
         if accepted_values is not None and value not in accepted_values:
-            raise Exception(f"{variable_name}={value}. '{value}' is not valid. Valid options: {accepted_values}")
+            accepted_values_str = ", ".join(map(str, accepted_values))
+            raise Exception(f"Invalid value for '{variable_name}': '{value}'. Expected one of: {accepted_values_str}")
         return value
 
 

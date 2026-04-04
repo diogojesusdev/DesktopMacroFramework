@@ -1,5 +1,4 @@
 import os
-from pkgutil import extend_path
 from ..framework.Decorators.AutomationDecorator import AutomationDecorator
 from send2trash import send2trash
 
@@ -35,10 +34,12 @@ class files:
             expanded_path = os.path.expandvars(path)
             try:
                 send2trash(expanded_path)
-                deleted.append(extend_path)
+                deleted.append(expanded_path)
             except Exception as e:
+                deleted_count = len(deleted)
+                deleted_summary = f" {deleted_count} earlier path(s) were already deleted." if deleted_count > 0 else ""
                 raise Exception(
-                    f"Deleted: {', '.join(deleted)}; but errored while deleting '{expanded_path}': {str(e)}. "
+                    f"Could not delete '{expanded_path}'.{deleted_summary} {str(e)}"
                 )
 
     @AutomationDecorator

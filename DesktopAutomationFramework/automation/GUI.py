@@ -33,7 +33,7 @@ class gui:
     def ask(text, title = "", default = "") -> str:
         res = _prompt(str(text), str(title), default)
         if res is None:
-            raise Exception("User did not answer input.ask")
+            raise Exception("Input dialog was closed without a value")
         return res
 
     @AutomationDecorator
@@ -66,6 +66,6 @@ class gui:
         root.mainloop()
 
         if selected_option is None:
-            raise Exception("No option selected")
+            raise Exception("Option selection was cancelled before a choice was made")
 
         return selected_option

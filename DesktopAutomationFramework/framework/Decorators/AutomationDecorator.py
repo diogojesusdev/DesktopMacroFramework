@@ -22,7 +22,7 @@ def AutomationDecorator(func):
         elif function_line_no == RWVariables.macroStartLineNumber:
             RWVariables.macroStartLineNumber = None
         
-        if RWVariables.macroMonitorShared is None: raise Exception("Macro Monitor variable was not initialized (= None)")
+        if RWVariables.macroMonitorShared is None: raise Exception("Macro monitor is not initialized. Start the macro through @Macro()")
         RWVariables.macroMonitorShared.updateInstruction(function_line_no)
         
         className: str = func.__qualname__.split('.')[0]

@@ -1,5 +1,7 @@
 import inspect
+import os
 import time
+import traceback
 import pyautogui
 import pygetwindow as gw
 
@@ -147,6 +149,17 @@ def get_full_source_code() -> list[tuple[int, str]]:
         source_lines = source_lines[index+1:]
         
     return source_lines
+
+def get_macro_failure_line(error: Exception, macro_file_path: str) -> int | None:
+    trace = traceback.extract_tb(error.__traceback__)
+    normalized_macro_path = os.path.normcase(os.path.abspath(macro_file_path))
+
+    for frame in reversed(trace):
+        frame_path = os.path.normcase(os.path.abspath(frame.filename))
+        if frame_path == normalized_macro_path:
+            return frame.lineno
+
+    return None
 
 def tryUpdateMacroStatusGUI():
     if RWVariables.macroMonitorShared is None: return

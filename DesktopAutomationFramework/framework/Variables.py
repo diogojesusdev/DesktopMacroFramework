@@ -31,6 +31,7 @@ class RWVariables:
     macroMonitorShared: Optional["MacroMonitorGUI"] = None
     
     stopMacro: bool = False
+    highlightedMacroLineNumber: Optional[int] = None
     # Reset at macro restart. When set, the instructions on previous line numbers are skipped
     macroStartLineNumber: Optional[int] = None
     macroStatus: MacroStatus = MacroStatus.READY

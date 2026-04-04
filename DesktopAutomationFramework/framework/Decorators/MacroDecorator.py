@@ -1,5 +1,6 @@
 import datetime
 from functools import wraps
+import inspect
 import os
 import subprocess
 import sys
@@ -10,7 +11,7 @@ from DesktopAutomationFramework.framework.types.CustomErrors import MacroStopped
 
 from ..MacroMonitorGUI import MacroMonitorGUI
 from ..types.MacroStatus import MacroStatus
-from ..utils import get_full_source_code, showMacroErrorGUI, tryUpdateMacroStatusGUI, updatePlayButtonsConfigs
+from ..utils import get_full_source_code, get_macro_failure_line, showMacroErrorGUI, tryUpdateMacroStatusGUI, updatePlayButtonsConfigs
 from ..Variables import RVariables, RWVariables
 from ..SelfUpdate import SelfUpdate
 from ...automation.Variables import vars
@@ -34,6 +35,7 @@ class Macro:
                 self.exit_after_run = True
         
     def __call__(self, func):
+        macro_file_path = inspect.getsourcefile(func) or os.path.abspath(sys.argv[0])
         # Start/Resume       
         @wraps(func) 
         def wrapper():
@@ -49,7 +51,8 @@ class Macro:
                     RWVariables.expectedWindowTitle = None
                     RVariables.logger.new_file()
                     RWVariables.macroStatus = MacroStatus.READY
-                    if RWVariables.macroMonitorShared is not None and RWVariables.macroStartLineNumber is not None: RWVariables.macroMonitorShared.updateInstruction(RWVariables.macroStartLineNumber)
+                    if RWVariables.macroMonitorShared is not None and RWVariables.highlightedMacroLineNumber is not None:
+                        RWVariables.macroMonitorShared.updateInstruction(RWVariables.highlightedMacroLineNumber)
                     updatePlayButtonsConfigs()
                     if not errored_on_previous_run:
                         tryUpdateMacroStatusGUI()
@@ -77,6 +80,12 @@ class Macro:
                 except Exception as e:
                     errored_on_previous_run = True
                     error_message = str(e)
+
+                    failed_line_number = get_macro_failure_line(e, macro_file_path)
+                    if failed_line_number is not None:
+                        RWVariables.highlightedMacroLineNumber = failed_line_number
+                        if RWVariables.macroMonitorShared is not None:
+                            RWVariables.macroMonitorShared.updateInstruction(failed_line_number)
                     
                     showMacroErrorGUI(error_message)
                     RVariables.logger.error(error_message)

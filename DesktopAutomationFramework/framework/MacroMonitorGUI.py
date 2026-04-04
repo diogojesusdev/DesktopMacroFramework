@@ -46,13 +46,18 @@ class MacroMonitorGUI:
             code_line = code_line[1]
             self.listbox.insert(tk.END, code_line)
         self.listbox.select_set(0)
+        if source_code:
+            RWVariables.highlightedMacroLineNumber = source_code[0][0]
         def on_item_selected(_):
+            if not self.listbox.curselection():
+                return
             # Get the index of the selected item
             if RWVariables.macroStatus is MacroStatus.RUNNING:
                 self.listbox.selection_clear(0, tk.END)
             else:
                 selected_index = self.listbox.curselection()[0]
                 RWVariables.macroStartLineNumber = source_code[selected_index][0]
+                RWVariables.highlightedMacroLineNumber = source_code[selected_index][0]
                 onStop() # the flag indicates if the stop request was made by the user or the program
         self.listbox.bind("<<ListboxSelect>>", on_item_selected)
         
@@ -86,6 +91,7 @@ class MacroMonitorGUI:
             
             for idx, item in enumerate(self.source_code):
                 if item[0] == code_line:
+                    RWVariables.highlightedMacroLineNumber = code_line
                     self.listbox.select_set(idx)
                     # make sure user can see the items after the selected item
                     if idx > 4:

@@ -12,7 +12,7 @@ class windows:
     
     @AutomationDecorator
     @staticmethod
-    def wait(partial_title: str, timeout_s: int = 2):
+    def wait(partial_title: str, timeout_s: int = 20):
         time_passed_s = 0
 
         partial_title = partial_title.lower()
